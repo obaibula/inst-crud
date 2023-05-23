@@ -4,7 +4,6 @@ import com.example.instcrud.dto.UserDTO;
 import com.example.instcrud.entity.User;
 import com.example.instcrud.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,7 +37,7 @@ public class UserRestController {
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<UserDTO>> all(Pageable pageable){
 
-        // read as DTOs
+        // read as DTOs, using pagination and adding links (HATEOAS)
         var users = userService.findAll(PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
@@ -65,4 +64,64 @@ public class UserRestController {
         return created(location)
                 .body(addedUser);
     }
+
+    @PutMapping("/{requestedId}")
+    private ResponseEntity<Void> replaceUser(@PathVariable Long requestedId,
+                                             @RequestBody User userUpdate){
+
+        if(userService.existsById(requestedId)){
+            var updatedUser = mapUpdatedUser(requestedId, userUpdate);
+
+            userService.save(updatedUser);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
+    private User mapUpdatedUser(Long requestedId, User userUpdate) {
+        return User.builder()
+                .id(requestedId)
+                .createdAt(userUpdate.getCreatedAt())
+                .updatedAt(userUpdate.getUpdatedAt())
+                .username(userUpdate.getUsername())
+                .bio(userUpdate.getBio())
+                .avatar(userUpdate.getAvatar())
+                .phone(userUpdate.getPhone())
+                .email(userUpdate.getEmail())
+                .password(userUpdate.getPassword())
+                .status(userUpdate.getStatus())
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    private ResponseEntity<Void>  deleteUser(@PathVariable Long id){
+        if(userService.existsById(id)){
+            userService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
+    // todo: create patch method?
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

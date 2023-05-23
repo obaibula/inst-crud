@@ -11,4 +11,7 @@ public interface UserService {
     User save(User user);
 
     List<UserDTO> findAll(Pageable pageable);
+
+    boolean existsById(Long id);
+    void deleteById(Long id);
 }

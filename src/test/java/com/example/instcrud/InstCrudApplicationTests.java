@@ -8,10 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
 
-import static org.assertj.core.api.Assertions.*;
-//refactor tests using postgres db deployed in docker
+import static org.assertj.core.api.Assertions.assertThat;
+// todo: refactor tests using postgres db deployed in docker
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class InstCrudApplicationTests {
 
