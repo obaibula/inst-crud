@@ -4,6 +4,11 @@ import com.example.instcrud.dto.UserDTO;
 import com.example.instcrud.entity.User;
 import com.example.instcrud.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +30,26 @@ public class UserRestController {
     public EntityModel<UserDTO> one(@PathVariable Long userId){
         UserDTO user = userService.findById(userId);
         return EntityModel.of(user,
-                linkTo(methodOn(UserRestController.class).one(userId)).withSelfRel());
+                linkTo(methodOn(UserRestController.class).one(userId)).withSelfRel(),
+                linkTo(methodOn(UserRestController.class).all(Pageable.unpaged())).withRel("users"));
+    }
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public CollectionModel<EntityModel<UserDTO>> all(Pageable pageable){
+
+        // read as DTOs
+        var users = userService.findAll(PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSortOr(Sort.by(Sort.Direction.ASC, "id"))))
+                .stream()
+                .map(user -> EntityModel.of(user,
+                        linkTo(methodOn(UserRestController.class).one(user.id())).withSelfRel(),
+                        linkTo(methodOn(UserRestController.class).all(pageable)).withRel("users")))
+                .toList();
+
+        return CollectionModel.of(users, linkTo(methodOn(UserRestController.class).all(pageable)).withSelfRel());
     }
 
     @PostMapping
