@@ -1,6 +1,6 @@
 package com.example.instcrud.controller;
 
-import com.example.instcrud.dto.UserDTO;
+import com.example.instcrud.dto.user.UserResponseDTO;
 import com.example.instcrud.entity.User;
 import com.example.instcrud.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +26,8 @@ public class UserRestController {
 
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public EntityModel<UserDTO> one(@PathVariable Long userId){
-        UserDTO user = userService.findById(userId);
+    public EntityModel<UserResponseDTO> one(@PathVariable Long userId){
+        UserResponseDTO user = userService.findById(userId);
         return EntityModel.of(user,
                 linkTo(methodOn(UserRestController.class).one(userId)).withSelfRel(),
                 linkTo(methodOn(UserRestController.class).all(Pageable.unpaged())).withRel("users"));
@@ -35,7 +35,7 @@ public class UserRestController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CollectionModel<EntityModel<UserDTO>> all(Pageable pageable){
+    public CollectionModel<EntityModel<UserResponseDTO>> all(Pageable pageable){
 
         // read as DTOs, using pagination and adding links (HATEOAS)
         var users = userService.findAll(PageRequest.of(

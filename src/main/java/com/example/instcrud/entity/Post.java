@@ -7,16 +7,18 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "posts")
-@Setter @Getter
-@NoArgsConstructor
+@ToString(exclude = "user")
 @Check(constraints = """
         lat IS NULL OR (lat >= -90 AND lat <= 90)
         AND
         lng IS NULL OR (lng >= -180 AND lng <= 180)
         """)
-@ToString(exclude = "user")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

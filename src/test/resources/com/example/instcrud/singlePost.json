@@ -1,0 +1,21 @@
+{
+  "id": 2,
+  "createdAt": "2023-05-30T07:35:14.358394",
+  "updatedAt": "2023-05-30T07:35:14.358394",
+  "url": "http://post.com",
+  "caption": "Hello World!",
+  "lat": null,
+  "lng": null,
+  "user": {
+    "id": 66,
+    "createdAt": "2023-05-19T12:44:28",
+    "updatedAt": "2023-05-19T12:59:28",
+    "username": "oleh123",
+    "bio": null,
+    "avatar": null,
+    "phone": "+380501339531",
+    "email": null,
+    "password": null,
+    "status": "OFFLINE"
+  }
+}

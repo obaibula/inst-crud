@@ -1,7 +1,7 @@
 package com.example.instcrud.service;
 
-import com.example.instcrud.dto.UserDTO;
-import com.example.instcrud.dto.UserDTOMapper;
+import com.example.instcrud.dto.user.UserDTO;
+import com.example.instcrud.dto.user.UserResponseDTO;
 import com.example.instcrud.entity.User;
 import com.example.instcrud.exception.UserNotFoundException;
 import com.example.instcrud.exception.UserPropertyValueException;
@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.instcrud.dto.mapper.UserDTOMapper;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,17 +25,19 @@ public class UserServiceImpl implements UserService {
     private final UserDTOMapper userDTOMapper;
 
     @Override
-    public UserDTO findById(long id) {
+    public UserResponseDTO findById(long id) {
         return userRepository.findById(id)
                 .map(userDTOMapper)
+                .map(UserDTO::userResponseDTO)
                 .orElseThrow(() -> new UserNotFoundException("Not found user with id - " + id));
     }
 
     @Override
-    public List<UserDTO> findAll(Pageable pageable) {
+    public List<UserResponseDTO> findAll(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .stream()
                 .map(userDTOMapper)
+                .map(UserDTO::userResponseDTO)
                 .collect(Collectors.toList());
     }
 
