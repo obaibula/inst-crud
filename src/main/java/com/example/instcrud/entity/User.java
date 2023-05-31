@@ -15,9 +15,11 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     //will be set to now(), when it is created

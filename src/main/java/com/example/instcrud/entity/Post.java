@@ -17,9 +17,11 @@ import java.time.LocalDateTime;
         lng IS NULL OR (lng >= -180 AND lng <= 180)
         """)
 @ToString(exclude = "user")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(updatable = false)
