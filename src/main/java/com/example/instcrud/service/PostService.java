@@ -6,5 +6,5 @@ import com.example.instcrud.entity.Post;
 public interface PostService {
     PostDTO findById(long id);
 
-    Post save(Post post);
+    Post save(Post post, Long userId);
 }

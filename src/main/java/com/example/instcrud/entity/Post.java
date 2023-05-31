@@ -1,5 +1,6 @@
 package com.example.instcrud.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
@@ -40,6 +41,8 @@ public class Post {
 
     private Float lng;
 
+    //todo: get rid of @JsonBackReference
+    @JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private User user;

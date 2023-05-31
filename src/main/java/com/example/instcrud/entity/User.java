@@ -1,5 +1,6 @@
 package com.example.instcrud.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -53,6 +54,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
+    //todo: get rid of @JsonManagedReference
+    @JsonManagedReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts = new ArrayList<>();
 

@@ -2,6 +2,7 @@ package com.example.instcrud.controller;
 
 import com.example.instcrud.dto.PostDTO;
 import com.example.instcrud.entity.Post;
+import com.example.instcrud.entity.User;
 import com.example.instcrud.repository.UserRepository;
 import com.example.instcrud.service.PostService;
 import com.example.instcrud.service.UserService;
@@ -13,17 +14,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.util.Optional;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-import static org.springframework.http.ResponseEntity.created;
+import static org.springframework.http.ResponseEntity.*;
 
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
 public class PostRestController {
     private final PostService postService;
-    //temporary
-    private final UserRepository userRepository;
 
     @GetMapping("/{postId}")
     @ResponseStatus(HttpStatus.OK)
@@ -33,14 +34,9 @@ public class PostRestController {
                 linkTo(methodOn(PostRestController.class).one(postId)).withSelfRel());
     }
 
-    //todo:
     @PostMapping
-    private ResponseEntity<Post> createPost(@RequestBody Post post){
-        Post addedPost = postService.save(post);
-
-        //temporary(lack of time)
-        post.setUser(userRepository.findById(10L).orElseThrow());
-
+    private ResponseEntity<Post> createPost(@RequestBody Post post, @RequestParam Long userId){
+        var addedPost = postService.save(post, userId);
 
         var location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
