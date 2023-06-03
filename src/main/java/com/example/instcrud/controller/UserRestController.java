@@ -24,6 +24,7 @@ import static org.springframework.http.ResponseEntity.created;
 public class UserRestController {
     private final UserService userService;
 
+    //todo: inspect and fix problems gained by OSIV anti-pattern in every method
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public EntityModel<UserDTO> one(@PathVariable Long userId){

@@ -8,5 +8,6 @@
   "phone": "+380501339531",
   "email": null,
   "password": null,
-  "status": "OFFLINE"
+  "status": "OFFLINE",
+  "posts": null
 }
