@@ -1,6 +1,6 @@
 package com.example.instcrud.exception;
 
-//test
+//test2
 public class PostNotFoundException extends RuntimeException {
     public PostNotFoundException(String message) {
         super(message);
