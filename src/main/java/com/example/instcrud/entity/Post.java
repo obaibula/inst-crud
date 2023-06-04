@@ -12,11 +12,10 @@ import java.time.LocalDateTime;
 @Table(name = "posts")
 @Setter @Getter
 @NoArgsConstructor
-// todo: fix coor-tes issue - the lat can't be null when the lng is not null
 @Check(constraints = """
-        lat IS NULL OR (lat >= -90 AND lat <= 90)
+        lat IS NULL OR (lng IS NOT NULL AND lat >= -90 AND lat <= 90)
         AND
-        lng IS NULL OR (lng >= -180 AND lng <= 180)
+        lng IS NULL OR (lat IS NOT NULL AND lng >= -180 AND lng <= 180)
         """)
 @ToString(exclude = "user")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)

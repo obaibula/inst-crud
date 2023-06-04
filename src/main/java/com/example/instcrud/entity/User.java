@@ -31,7 +31,6 @@ public class User {
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime updatedAt;
 
-    // todo: alter table, add UNIQUE constraint
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -39,14 +38,12 @@ public class User {
 
     private String avatar;
 
-    //todo: handle exception if not unique
     @Column(unique = true)
     private String phone;
 
     @Column(unique = true)
     private String email;
 
-    // todo: alter table, add constraint to not null
     @Column(nullable = false)
     private String password;
 
