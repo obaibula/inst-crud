@@ -3,7 +3,6 @@ package com.example.instcrud.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,10 +52,12 @@ public class User {
 
     //todo: get rid of @JsonManagedReference
     @JsonManagedReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
 
-    public void addPost(Post post){
+    public void addPost(Post post) {
         post.setUser(this);
         posts.add(post);
     }

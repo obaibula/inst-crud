@@ -30,8 +30,12 @@ public class UserRestController {
     public EntityModel<UserDTO> one(@PathVariable Long userId){
         UserDTO user = userService.findById(userId);
         return EntityModel.of(user,
-                linkTo(methodOn(UserRestController.class).one(userId)).withSelfRel(),
-                linkTo(methodOn(UserRestController.class).all(Pageable.unpaged())).withRel("users"));
+                linkTo(methodOn(UserRestController.class)
+                                .one(userId))
+                        .withSelfRel(),
+                linkTo(methodOn(UserRestController.class)
+                        .all(Pageable.unpaged()))
+                        .withRel("users"));
     }
 
     @GetMapping
