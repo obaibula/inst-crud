@@ -63,7 +63,7 @@ public class PostRestController {
 
     //todo: refactor
     //use the next template to add post with userId = 3 http://localhost:8080/posts?userId=3
-    @PostMapping
+    @PostMapping("/posts")
     private ResponseEntity<Post> createPost(@RequestBody Post post, @RequestParam Long userId){
         var addedPost = postService.save(post, userId);
 

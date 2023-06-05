@@ -1,6 +1,6 @@
 package com.example.instcrud.exception;
 
-public record UserErrorResponse(int status,
+public record PostErrorResponse(int status,
                                 String message,
                                 long timeStamp) {
 }

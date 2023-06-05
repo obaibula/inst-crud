@@ -8,13 +8,12 @@ import com.example.instcrud.exception.UserNotFoundException;
 import com.example.instcrud.repository.PostRepository;
 import com.example.instcrud.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +23,16 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
 
     @Override
-    public PostDTO findById(long userId,long postId) {
+    public PostDTO findById(long userId, long postId) {
         return postRepository.findByUserIdAndPostId(userId, postId)
                 .map(postDTOMapper)
-                .orElseThrow(() -> new PostNotFoundException("Not found post with id - " + postId));
+                .orElseThrow(() -> checkWhetherUserExistsAndGetAppropriateException(userId, postId));
+    }
+
+    private RuntimeException checkWhetherUserExistsAndGetAppropriateException(long userId, long postId) {
+            if (userRepository.existsById(userId)) {
+                return new PostNotFoundException("Not found post with id - " + postId);
+            } else return new UserNotFoundException("User not found with id: " + userId);
     }
 
     @Override
@@ -35,21 +40,30 @@ public class PostServiceImpl implements PostService {
     public Post save(Post post, Long userId) {
         var userOptional = userRepository.findById(userId);
 
-        if(userOptional.isPresent()){
+        if (userOptional.isPresent()) {
             var user = userOptional.get();
             post.setUser(user);
             user.addPost(post);
             return postRepository.save(post);
-        }else {
+        } else {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
     }
 
     @Override
     public List<PostDTO> findAllByUserId(Long userId, Pageable pageable) {
-        return postRepository.findAllByUserId(userId, pageable)
-                .stream()
+        Page<Post> allByUserId = postRepository.findAllByUserId(userId, pageable);
+
+        if (allByUserId.isEmpty()) {
+            if (userRepository.existsById(userId)) {
+                throw new PostNotFoundException("user does not have any posts with userId - " + userId);
+            } else {
+                throw new UserNotFoundException("user is not found with id - " + userId);
+            }
+        }
+
+        return allByUserId
                 .map(postDTOMapper)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

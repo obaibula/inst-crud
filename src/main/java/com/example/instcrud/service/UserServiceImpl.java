@@ -34,9 +34,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDTO> findAll(Pageable pageable) {
         return userRepository.findAllFetchPosts(pageable)
-                .stream()
                 .map(userDTOMapper)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

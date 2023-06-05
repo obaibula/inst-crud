@@ -7,20 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.sql.SQLException;
-
 @ControllerAdvice
 @Log4j2
 public class UserExceptionAdvice {
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<UserErrorResponse> userNotFoundHandler(UserNotFoundException e){
-        var response = new UserErrorResponse();
+    public ResponseEntity<UserErrorResponse> userNotFoundHandler(UserNotFoundException e) {
         String message = e.getMessage();
-
-        response.setStatus(HttpStatus.NOT_FOUND.value());
-        response.setMessage(message);
-        response.setTimeStamp(System.currentTimeMillis());
+        var response = new UserErrorResponse(HttpStatus.NOT_FOUND.value(),
+                message,
+                System.currentTimeMillis());
 
         log.error(message);
         e.printStackTrace();
@@ -30,13 +26,11 @@ public class UserExceptionAdvice {
 
     @ExceptionHandler(UserPropertyValueException.class)
     public ResponseEntity<UserErrorResponse>
-    userPropertyValueHandler(UserPropertyValueException e){
-        var response = new UserErrorResponse();
+    userPropertyValueHandler(UserPropertyValueException e) {
         String message = e.getMessage();
-
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
-        response.setMessage(message);
-        response.setTimeStamp(System.currentTimeMillis());
+        var response = new UserErrorResponse(HttpStatus.NOT_FOUND.value(),
+                message,
+                System.currentTimeMillis());
 
         log.error(message);
         e.printStackTrace();
@@ -44,16 +38,14 @@ public class UserExceptionAdvice {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    // handle unique issued exception for example
+    // handle unique-issued exception for example
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<UserErrorResponse>
-    dataIntegrityViolationHandler(DataIntegrityViolationException e){
-        var response = new UserErrorResponse();
+    dataIntegrityViolationHandler(DataIntegrityViolationException e) {
         String message = e.getMessage();
-
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
-        response.setMessage(message);
-        response.setTimeStamp(System.currentTimeMillis());
+        var response = new UserErrorResponse(HttpStatus.NOT_FOUND.value(),
+                message,
+                System.currentTimeMillis());
 
         log.error(message);
         e.printStackTrace();
