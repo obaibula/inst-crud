@@ -12,5 +12,5 @@ public record UserDTO(Long id,
                       String phone,
                       String email,
                       UserStatus status,
-                      List<Post> posts) {
+                      List<PostDTO> posts) {
 }

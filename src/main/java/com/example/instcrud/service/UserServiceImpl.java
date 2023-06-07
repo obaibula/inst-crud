@@ -21,13 +21,17 @@ public class UserServiceImpl implements UserService {
     private final UserDTOMapper userDTOMapper;
 
     @Override
+    @Transactional(readOnly = true) //to avoid possible dirty checking in Hibernate
     public UserDTO findById(long id) {
         return userRepository.findById(id)
                 .map(userDTOMapper)
                 .orElseThrow(() -> new UserNotFoundException("Not found user with id - " + id));
     }
 
+
+
     @Override
+    @Transactional(readOnly = true)
     public List<UserDTO> findAll(Pageable pageable) {
         return userRepository.findAllFetchPosts(pageable)
                 .map(userDTOMapper)

@@ -23,6 +23,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public PostDTO findById(long userId, long postId) {
         return postRepository.findByUserIdAndPostId(userId, postId)
                 .map(postDTOMapper)
@@ -51,6 +52,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PostDTO> findAllByUserId(Long userId, Pageable pageable) {
         Page<Post> allByUserId = postRepository.findAllByUserId(userId, pageable);
 
