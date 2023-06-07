@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Long>{
 
+    // todo: Something went wrong after the comment entity had been added. Refactor. create custom Repository or change Post JSON
     // This custom query is made to avoid issues connected to the Open Session In View anti-pattern.
     @Query("""
             SELECT u

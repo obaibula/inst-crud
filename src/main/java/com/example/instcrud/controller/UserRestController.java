@@ -3,6 +3,7 @@ package com.example.instcrud.controller;
 import com.example.instcrud.dto.UserDTO;
 import com.example.instcrud.entity.User;
 import com.example.instcrud.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +58,7 @@ public class UserRestController {
     }
 
     @PostMapping
-    private ResponseEntity<User> createUser(@RequestBody User user){
+    private ResponseEntity<User> createUser(@Valid @RequestBody User user){
         User addedUser = userService.save(user);
 
         var location = ServletUriComponentsBuilder

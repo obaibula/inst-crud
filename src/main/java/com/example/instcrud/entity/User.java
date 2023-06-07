@@ -2,6 +2,7 @@ package com.example.instcrud.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,11 +16,10 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = "id")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
     //will be set to now(), when it is created
@@ -31,6 +31,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Column(nullable = false, unique = true)
+    @NotBlank(message = "Username is mandatory")
     private String username;
 
     private String bio;
@@ -44,6 +45,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @NotBlank(message = "Password is mandatory")
     private String password;
 
     @Column(nullable = false)
@@ -55,11 +57,24 @@ public class User {
     @OneToMany(mappedBy = "user",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @Setter(AccessLevel.PRIVATE)
     private List<Post> posts = new ArrayList<>();
 
     public void addPost(Post post) {
         post.setUser(this);
         posts.add(post);
+    }
+
+    @OneToMany(mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Setter(AccessLevel.PRIVATE)
+    private List<Comment> comments = new ArrayList<>();
+
+    public void addComment(Comment comment) {
+        comment.setUser(this);
+        comments.add(comment);
     }
 
     @PrePersist

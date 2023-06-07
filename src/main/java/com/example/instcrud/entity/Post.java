@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
-import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -18,11 +19,10 @@ import java.time.LocalDateTime;
         lng IS NULL OR (lat IS NOT NULL AND lng >= -180 AND lng <= 180)
         """)
 @ToString(exclude = "user")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = "id")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(updatable = false)
@@ -46,6 +46,18 @@ public class Post {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "post",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Setter(AccessLevel.PRIVATE)
+    private List<Comment> comments = new ArrayList<>();
+
+    public void addComment(Comment comment){
+        comment.setPost(this);
+        comments.add(comment);
+    }
 
     @PrePersist
     protected void onCreate() {
