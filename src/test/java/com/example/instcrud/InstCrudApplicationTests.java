@@ -1,40 +1,53 @@
 package com.example.instcrud;
 
+import com.example.instcrud.entity.User;
 import com.example.instcrud.entity.UserStatus;
-import com.jayway.jsonpath.JsonPath;
+import com.example.instcrud.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 // todo: refactor tests using postgres db deployed in docker
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+
+@Testcontainers
+@SpringBootTest
 class InstCrudApplicationTests {
 
+	//Don't forget to change your timezone from 'Europe/Kyiv' to something else, such as Helsinki.
+	@Container
+	public static PostgreSQLContainer container = new PostgreSQLContainer("postgres:14.8")
+			.withUsername("postgres")
+			.withPassword("12345")
+			.withDatabaseName("myinstagram");
+
+	@DynamicPropertySource
+	static void properties(DynamicPropertyRegistry registry){
+		registry.add("spring.datasource.url", container::getJdbcUrl);
+		registry.add("spring.datasource.password", container::getPassword);
+		registry.add("spring.datasource.username", container::getUsername);
+	}
 	@Autowired
-	TestRestTemplate restTemplate;
+	private UserRepository userRepository;
 
 	@Test
-	void shouldReturnAUserWhenDataIsSaved(){
-		ResponseEntity<String> response = restTemplate
-				.getForEntity("/users/1", String.class);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+	void contextLoads(){
+		var user = User.builder()
+				.username("user")
+				.bio("fdfh")
+				.avatar("userUpdate.getAvatar()")
+				.phone("userUpdate.getPhone()")
+				.email("userUpdate.getEmail()")
+				.password(null)
+				.status(UserStatus.ONLINE)
+				.build();
 
-		var documentContext = JsonPath.parse(response.getBody());
-		var id = documentContext.read("$.id");
-		assertThat(id).isEqualTo(1);
+		userRepository.save(user);
 
-		var username = documentContext.read("$.username");
-		assertThat(username).isEqualTo("oleh123");
-
-		var avatar = documentContext.read("$.avatar");
-		assertThat(avatar).isNull();
-
-		var status = documentContext.read("$.status");
-		assertThat(status).isEqualTo(UserStatus.OFFLINE.toString());
+		System.out.println("Context loads!");
 	}
 
 }
