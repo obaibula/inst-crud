@@ -1,7 +1,11 @@
 package com.example.instcrud.entity;
 
+import com.example.instcrud.validation.ValidPassword;
+import com.example.instcrud.validation.ValidPhone;
+import com.example.instcrud.validation.ValidUsername;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -31,7 +35,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "Username is mandatory")
+    @ValidUsername
     private String username;
 
     private String bio;
@@ -39,13 +43,15 @@ public class User {
     private String avatar;
 
     @Column(unique = true)
+    @ValidPhone
     private String phone;
 
     @Column(unique = true)
+    @Email
     private String email;
 
     @Column(nullable = false)
-    @NotBlank(message = "Password is mandatory")
+    @ValidPassword
     private String password;
 
     @Column(nullable = false)

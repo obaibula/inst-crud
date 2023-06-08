@@ -58,7 +58,7 @@ public class UserRestController {
     }
 
     @PostMapping
-    private ResponseEntity<User> createUser(@Valid @RequestBody User user){
+    private ResponseEntity<User> createUser(@RequestBody User user){
         User addedUser = userService.save(user);
 
         var location = ServletUriComponentsBuilder

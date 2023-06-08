@@ -42,9 +42,9 @@ public class PostRestController {
                 pageable.getPageSize(),
                 pageable.getSortOr(Sort.by(Sort.Direction.ASC, "id"))))
                 .stream()
-                .map(post -> EntityModel.of(post,
+                .map(postDTO -> EntityModel.of(postDTO,
                         linkTo(methodOn(PostRestController.class)
-                                .one(userId, post.id()))
+                                .one(userId, postDTO.id()))
                                 .withSelfRel(),
                         linkTo(methodOn(PostRestController.class)
                                 .all(userId, pageable))
