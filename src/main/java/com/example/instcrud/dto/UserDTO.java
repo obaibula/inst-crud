@@ -1,9 +1,8 @@
 package com.example.instcrud.dto;
 
-import com.example.instcrud.entity.Post;
 import com.example.instcrud.entity.UserStatus;
-
-import java.util.List;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 
 public record UserDTO(Long id,
                       String username,
@@ -12,5 +11,5 @@ public record UserDTO(Long id,
                       String phone,
                       String email,
                       UserStatus status,
-                      List<PostDTO> posts) {
+                      CollectionModel<EntityModel<PostDTO>> posts) {
 }
