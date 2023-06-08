@@ -71,7 +71,7 @@ public class UserRestController {
                 .body(addedUser);
     }
 
-    //it's broken - fix
+    // todo: it's broken - fix
     @PutMapping("/{requestedId}")
     private ResponseEntity<Void> replaceUser(@PathVariable Long requestedId,
                                              @RequestBody User userUpdate){
@@ -101,7 +101,7 @@ public class UserRestController {
                 .build();
     }
 
-    // too much sql requests? refactor
+    // todo: too much sql requests? refactor
     @DeleteMapping("/{id}")
     private ResponseEntity<Void>  deleteUser(@PathVariable Long id){
         if(userService.existsById(id)){
