@@ -47,7 +47,7 @@ public class User {
     private String phone;
 
     @Column(unique = true)
-    @Email
+    @Email //default e-mail validation
     private String email;
 
     @Column(nullable = false)

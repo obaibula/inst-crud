@@ -1,3 +1,5 @@
+
+
 My Instagram-like Maven backend project.
 
 Utilizing the following technologies and principles:
@@ -7,4 +9,7 @@ Spring Boot 3,
 REST, 
 Spring HATEOAS, 
 Spring Data, 
-Flyway...
+Flyway,
+Validation,
+Testcontainers,
+Spring Security... And so on
