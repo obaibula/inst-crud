@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
+
 import static org.springframework.http.ResponseEntity.created;
 
 @RestController
@@ -25,13 +27,17 @@ public class CommentRestController {
                                                   @RequestParam Long postId){
         var addedComment = commentService.save(comment, userId, postId);
 
-        var location = ServletUriComponentsBuilder
+        var location = getLocation(addedComment);
+
+        return created(location)
+                .body(addedComment);
+    }
+
+    private URI getLocation(Comment addedComment) {
+        return ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(addedComment.getId())
                 .toUri();
-
-        return created(location)
-                .body(addedComment);
     }
 }

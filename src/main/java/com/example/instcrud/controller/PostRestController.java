@@ -9,10 +9,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.function.Function;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -29,7 +33,7 @@ public class PostRestController {
     public EntityModel<PostDTO> one(@PathVariable Long userId, @PathVariable Long postId){
         PostDTO post = postService.findById(userId, postId);
         return EntityModel.of(post,
-                linkTo(methodOn(PostRestController.class).one(userId, postId)).withSelfRel());
+                getLinkToOneMethod(userId, postId).withSelfRel());
     }
 
     //use this url as template: "http://localhost:8080/users/3/posts?page=1&size=1"
@@ -37,22 +41,42 @@ public class PostRestController {
     @ResponseStatus(HttpStatus.OK)
     public CollectionModel<EntityModel<PostDTO>> all(@PathVariable Long userId, Pageable pageable){
 
-        var posts = postService.findAllByUserId(userId, PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSortOr(Sort.by(Sort.Direction.ASC, "id"))))
+        var posts = postService.findAllByUserId(userId, createPageRequest(pageable))
                 .stream()
-                .map(postDTO -> EntityModel.of(postDTO,
-                        linkTo(methodOn(PostRestController.class)
-                                .one(userId, postDTO.id()))
-                                .withSelfRel(),
-                        linkTo(methodOn(PostRestController.class)
-                                .all(userId, pageable))
-                                .withRel("users/" + userId + "/posts")))
+                .map(getPostDTOEntityModelFunction(userId, pageable))
                 .toList();
 
         return CollectionModel.of(posts,
-                linkTo(methodOn(PostRestController.class).all(userId, pageable)).withSelfRel());
+                getLinkToAllMethod(userId, pageable).withSelfRel());
+    }
+
+    private Function<PostDTO, EntityModel<PostDTO>> getPostDTOEntityModelFunction(Long userId, Pageable pageable) {
+        return postDTO -> getDtoEntityModel(userId, pageable, postDTO);
+    }
+
+    private EntityModel<PostDTO> getDtoEntityModel(Long userId, Pageable pageable, PostDTO postDTO) {
+        return EntityModel.of(postDTO,
+                getLinkToOneMethod(userId, postDTO.id())
+                        .withSelfRel(),
+                getLinkToAllMethod(userId, pageable)
+                        .withRel("users/" + userId + "/posts"));
+    }
+
+    private WebMvcLinkBuilder getLinkToAllMethod(Long userId, Pageable pageable) {
+        return linkTo(methodOn(PostRestController.class)
+                .all(userId, pageable));
+    }
+
+    private WebMvcLinkBuilder getLinkToOneMethod(Long userId, Long postId) {
+        return linkTo(methodOn(PostRestController.class)
+                .one(userId, postId));
+    }
+
+    private PageRequest createPageRequest(Pageable pageable) {
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSortOr(Sort.by(Sort.Direction.ASC, "id")));
     }
 
     // todo: refactor
@@ -62,14 +86,18 @@ public class PostRestController {
     private ResponseEntity<Post> createPost(@RequestBody Post post, @RequestParam Long userId){
         var addedPost = postService.save(post, userId);
 
-        var location = ServletUriComponentsBuilder
+        var location = getLocation(addedPost);
+
+        return created(location)
+                .body(addedPost);
+    }
+
+    private URI getLocation(Post addedPost) {
+        return ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(addedPost.getId())
                 .toUri();
-
-        return created(location)
-                .body(addedPost);
     }
 
     //todo: create PATCH, PUT, DELETE methods

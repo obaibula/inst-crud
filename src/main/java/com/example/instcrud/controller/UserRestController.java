@@ -9,12 +9,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -32,11 +35,9 @@ public class UserRestController {
     public EntityModel<UserDTO> one(@PathVariable Long userId) {
         UserDTO user = userService.findById(userId);
         return EntityModel.of(user,
-                linkTo(methodOn(UserRestController.class)
-                        .one(userId))
+                getLinkToOneMethod(userId)
                         .withSelfRel(),
-                linkTo(methodOn(UserRestController.class)
-                        .all(Pageable.unpaged()))
+                getLinkToAllMethod(Pageable.unpaged())
                         .withRel("users"));
     }
 
@@ -45,31 +46,59 @@ public class UserRestController {
     public CollectionModel<EntityModel<UserDTO>> all(Pageable pageable) {
 
         // read as DTOs, using pagination and adding links (HATEOAS)
-        var users = userService.findAll(PageRequest.of(
-                        pageable.getPageNumber(),
-                        pageable.getPageSize(),
-                        pageable.getSortOr(Sort.by(Sort.Direction.ASC, "id"))))
+        var users = userService.findAll(createPageRequest(pageable))
                 .stream()
-                .map(user -> EntityModel.of(user,
-                        linkTo(methodOn(UserRestController.class).one(user.id())).withSelfRel(),
-                        linkTo(methodOn(UserRestController.class).all(pageable)).withRel("users")))
+                .map(getUserDTOEntityModelFunction(pageable))
                 .toList();
 
-        return CollectionModel.of(users, linkTo(methodOn(UserRestController.class).all(pageable)).withSelfRel());
+        return CollectionModel.of(users, getLinkToAllMethod(pageable).withSelfRel());
+    }
+
+    private PageRequest createPageRequest(Pageable pageable) {
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSortOr(Sort.by(Sort.Direction.ASC, "id")));
+    }
+
+    private Function<UserDTO, EntityModel<UserDTO>> getUserDTOEntityModelFunction(Pageable pageable) {
+        return user -> getDtoEntityModel(pageable, user);
+    }
+
+    private EntityModel<UserDTO> getDtoEntityModel(Pageable pageable, UserDTO user) {
+        return EntityModel.of(user,
+                getLinkToOneMethod(user.id())
+                        .withSelfRel(),
+                getLinkToAllMethod(pageable)
+                        .withRel("users"));
+    }
+
+    private WebMvcLinkBuilder getLinkToAllMethod(Pageable pageable) {
+        return linkTo(methodOn(UserRestController.class)
+                .all(pageable));
+    }
+
+    private WebMvcLinkBuilder getLinkToOneMethod(Long userId) {
+        return linkTo(methodOn(UserRestController.class)
+                .one(userId));
     }
 
     @PostMapping
     private ResponseEntity<User> createUser(@RequestBody User user) {
         User addedUser = userService.save(user);
 
-        var location = ServletUriComponentsBuilder
+        var location = getLocation(addedUser);
+
+        return created(location)
+                .body(addedUser);
+    }
+
+    private URI getLocation(User addedUser) {
+        return ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(addedUser.getId())
                 .toUri();
-
-        return created(location)
-                .body(addedUser);
     }
 
     @PatchMapping("/{userId}")
