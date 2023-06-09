@@ -92,9 +92,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long userId) {
         findUserOrElseThrow(userId);
-        userRepository.deleteById(userId);
+        userRepository.deleteInBulkById(userId);
     }
 
     private User findUserOrElseThrow(Long userId) {

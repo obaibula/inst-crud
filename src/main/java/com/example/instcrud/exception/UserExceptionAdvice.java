@@ -60,8 +60,8 @@ public class UserExceptionAdvice {
     }
 
 
-    //todo: refactor validation
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    //todo: create handlers for Validation
+    /*@ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
@@ -73,5 +73,5 @@ public class UserExceptionAdvice {
             errors.put(fieldName, errorMessage);
         });
         return errors;
-    }
+    }*/
 }
