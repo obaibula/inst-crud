@@ -73,8 +73,8 @@ public class UserRestController {
     }
 
     @PatchMapping("/{userId}")
-    private ResponseEntity<Void> replaceUser(@PathVariable Long userId,
-                                             @RequestBody Map<String, Object> updates) {
+    private ResponseEntity<Void> updateUser(@PathVariable Long userId,
+                                            @RequestBody Map<String, Object> updates) {
         userService.updateUser(userId, updates);
         return ResponseEntity.noContent().build();
     }
