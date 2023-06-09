@@ -3,6 +3,7 @@ package com.example.instcrud.service;
 import com.example.instcrud.dto.UserDTO;
 import com.example.instcrud.dto.UserDTOMapper;
 import com.example.instcrud.entity.User;
+import com.example.instcrud.entity.UserStatus;
 import com.example.instcrud.exception.UserNotFoundException;
 import com.example.instcrud.exception.UserPropertyValueException;
 import com.example.instcrud.repository.UserRepository;
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +44,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User save(User user) {
+        checkForNulls(user);
+        return userRepository.save(user);
+    }
 
+    private void checkForNulls(User user) {
         //username, status and password must not be null
         Optional.ofNullable(user.getUsername())
                 .orElseThrow(() -> new UserPropertyValueException("not-null property references a null : "
@@ -60,17 +67,38 @@ public class UserServiceImpl implements UserService {
                 .or(() -> Optional.ofNullable(user.getEmail()))
                 .orElseThrow(() -> new UserPropertyValueException("not-null property references a null : "
                         + "User.username or User.email"));
-
-        return userRepository.save(user);
     }
 
     @Override
-    public boolean existsById(Long id) {
-        return userRepository.existsById(id);
+    @Transactional
+    public void updateUser(Long userId, Map<String, Object> updates) {
+        var user = findUserOrElseThrow(userId);
+
+        updates.forEach(updateAppropriateFields(user));
+        save(user);
+    }
+
+    private BiConsumer<String, Object> updateAppropriateFields(User user) {
+        return (field, value) -> {
+            switch (field) {
+                case "username" -> user.setUsername((String) value);
+                case "bio" -> user.setBio((String) value);
+                case "avatar" -> user.setAvatar((String) value);
+                case "phone" -> user.setPhone((String) value);
+                case "password" -> user.setPassword((String) value);
+                case "status" -> user.setStatus(UserStatus.valueOf((String) value));
+            }
+        };
     }
 
     @Override
-    public void deleteById(Long id) {
-        userRepository.deleteById(id);
+    public void deleteById(Long userId) {
+        findUserOrElseThrow(userId);
+        userRepository.deleteById(userId);
+    }
+
+    private User findUserOrElseThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Not found user with userId - " + userId));
     }
 }
