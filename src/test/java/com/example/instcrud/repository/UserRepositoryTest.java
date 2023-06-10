@@ -20,10 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserRepositoryTest {
 
     @Container
-    public static PostgreSQLContainer container = new PostgreSQLContainer("postgres:14.8")
-            .withUsername("postgres")
-            .withPassword("12345")
-            .withDatabaseName("myinstagram");
+    public static PostgreSQLContainer container = new PostgreSQLContainer("postgres:14.8");
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
