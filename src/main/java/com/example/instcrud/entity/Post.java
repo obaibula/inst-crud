@@ -13,6 +13,7 @@ import java.util.List;
 @Table(name = "posts")
 @Setter @Getter
 @NoArgsConstructor
+//todo: create appropriate exception handler for this constraint
 @Check(constraints = """
         lat IS NULL OR (lng IS NOT NULL AND lat >= -90 AND lat <= 90)
         AND

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.function.Function;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -100,5 +101,16 @@ public class PostRestController {
                 .toUri();
     }
 
-    //todo: create PATCH, PUT, DELETE methods
+    @DeleteMapping("posts/{id}")
+    private ResponseEntity<Void> deletePost(@PathVariable Long id){
+        postService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("posts/{postId}")
+    private ResponseEntity<Void> updatePost(@PathVariable Long postId,
+                                            @RequestBody Map<String, Object> updates){
+        postService.updatePost(postId, updates);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 @Service
 @RequiredArgsConstructor
@@ -67,5 +69,43 @@ public class PostServiceImpl implements PostService {
         return allByUserId
                 .map(postDTOMapper)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long postId) {
+        findPostOrElseThrow(postId);
+        postRepository.deleteInBulkById(postId);
+    }
+
+    @Override
+    @Transactional
+    public void updatePost(Long postId, Map<String, Object> updates) {
+        var post = findPostOrElseThrow(postId);
+
+        updates.forEach(updateAppropriateFields(post));
+
+        // If the post has been found successfully,
+        // there is no need to check if the user exists,
+        // like we did in the save method in this class
+        postRepository.save(post);
+    }
+
+    private BiConsumer<String, Object> updateAppropriateFields(Post post) {
+        return (field, value) -> {
+            switch (field){
+                case "url" -> post.setUrl((String) value);
+                case "caption" -> post.setCaption((String) value);
+                // It appears that the number from JSON is parsed as a Double,
+                // so it cannot be implicitly cast
+                case "lat" -> post.setLat(((Double) value).floatValue());
+                case "lng" -> post.setLng(((Double) value).floatValue());
+            }
+        };
+    }
+
+    private Post findPostOrElseThrow(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException("Not found post with postId - " + postId));
     }
 }

@@ -4,13 +4,11 @@ import com.example.instcrud.entity.Comment;
 import com.example.instcrud.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Map;
 
 import static org.springframework.http.ResponseEntity.created;
 
@@ -39,5 +37,19 @@ public class CommentRestController {
                 .path("/{id}")
                 .buildAndExpand(addedComment.getId())
                 .toUri();
+    }
+
+    @PatchMapping("/comments/{commentId}")
+    private ResponseEntity<Void> updateComment(@PathVariable Long commentId,
+                                               @RequestBody Map<String, Object> updates){
+
+        commentService.updateComment(commentId, updates);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/comments/{id}")
+    private ResponseEntity<Void> deleteComment(@PathVariable Long id){
+        commentService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
