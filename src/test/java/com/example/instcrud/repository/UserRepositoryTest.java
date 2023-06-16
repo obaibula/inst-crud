@@ -2,13 +2,13 @@ package com.example.instcrud.repository;
 
 import com.example.instcrud.entity.Post;
 import com.example.instcrud.exception.UserNotFoundException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -20,10 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserRepositoryTest {
 
     @Container
-    public static PostgreSQLContainer container = new PostgreSQLContainer("postgres:14.8")
-            .withUsername("postgres")
-            .withPassword("12345")
-            .withDatabaseName("myinstagram");
+    public static PostgreSQLContainer container = new PostgreSQLContainer("postgres:14.8");
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
@@ -34,17 +31,24 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PostRepository postRepository;
 
-    @AfterEach
+    @Autowired
+    private CommentRepository commentRepository;
+
+    // todo: change the behavior of the population of the db in containers!
+    /*@AfterEach
     void tearDown() {
+        System.err.println("THE PROBLEM IS HERE******************************");
         userRepository.deleteAll();
-    }
+        System.err.println("THE PROBLEM IS HERE**************************");
+    }*/
 
     @Test
     void shouldFindAllUsersAndFetchTheirsPostsEagerly() {
         // given
 
-        // todo: change the behavior of the population of the db in containers!
         Long userId = 1L;
         var user = userRepository.findAllFetchPosts(Pageable.unpaged())
                 .get()
@@ -61,4 +65,27 @@ class UserRepositoryTest {
         assertThat(postIds).containsExactlyInAnyOrder(1L, 6L, 7L);
 
     }
+
+    @Test
+    @Transactional
+    void shouldDeleteAllUsersAndTheirsOrphansInBulk(){
+        Long userId = 4L;
+        Long postId = 11L; // post that belongs to the user with id 4;
+        Long commentIdByPost = 20L; // comment that belongs to the post with id 11;
+        Long commentIdByUser = 7L; // comment that belongs to the user with id 4;
+
+        userRepository.deleteInBulkById(userId);
+
+        var userOptional = userRepository.findById(userId);
+        var postOptional = postRepository.findById(postId);
+        var postsCommentOptional = commentRepository.findById(commentIdByPost);
+        var usersCommentOptional = commentRepository.findById(commentIdByUser);
+
+        assertThat(userOptional.isEmpty()).isTrue();
+        assertThat(postOptional.isEmpty()).isTrue();
+        assertThat(postsCommentOptional.isEmpty()).isTrue();
+        assertThat(usersCommentOptional.isEmpty()).isTrue();
+
+    }
+
 }
