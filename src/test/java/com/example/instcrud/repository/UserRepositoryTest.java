@@ -1,8 +1,8 @@
 package com.example.instcrud.repository;
 
 import com.example.instcrud.entity.Post;
-import com.example.instcrud.exception.UserNotFoundException;
-import org.junit.jupiter.api.Test;
+import org.hibernate.LazyInitializationException;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +13,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
+
+import static com.example.instcrud.util.TestDataGenerator.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
 @SpringBootTest
@@ -30,62 +34,134 @@ class UserRepositoryTest {
     }
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository underTest;
     @Autowired
     private PostRepository postRepository;
 
     @Autowired
     private CommentRepository commentRepository;
 
-    // todo: change the behavior of the population of the db in containers!
-    /*@AfterEach
+    @BeforeEach
+    void setUp() {
+        // create user1 with 2 posts
+        var user1 = createRundomUser("1");
+        underTest.save(user1);
+
+        var post1 = createRandomPost("1");
+        post1.setUser(user1);
+        user1.addPost(post1);
+        postRepository.save(post1);
+
+        var post2 = createRandomPost("2");
+        post2.setUser(user1);
+        user1.addPost(post2);
+        postRepository.save(post2);
+
+        // create user2 with no posts
+        var user2 = createRundomUser("2");
+        underTest.save(user2);
+
+        // create comment by user1 on post1
+        var comment = createRandomComment("1");
+        comment.setPost(post1);
+        post1.addComment(comment);
+        comment.setUser(user1);
+        user1.addComment(comment);
+        commentRepository.save(comment);
+    }
+
+    @AfterEach
     void tearDown() {
-        System.err.println("THE PROBLEM IS HERE******************************");
-        userRepository.deleteAll();
-        System.err.println("THE PROBLEM IS HERE**************************");
-    }*/
+        System.err.println("***************START DELETION***************");
+        underTest.deleteAll();
+        System.err.println("*************END DELETION*****************");
+    }
 
     @Test
+    @Order(1)
+    @DisplayName("Should find all users and fetch theirs posts eagerly")
     void shouldFindAllUsersAndFetchTheirsPostsEagerly() {
-        // given
 
-        Long userId = 1L;
-        var user = userRepository.findAllFetchPosts(Pageable.unpaged())
-                .get()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst()
-                .orElseThrow(() -> new UserNotFoundException("User not found with id - " + userId));
+        // test the method
+        var users = underTest.findAllFetchPosts(Pageable.unpaged());
 
-        // get the list of ids of all user's posts
-        var postIds = user.getPosts()
-                .stream()
-                .map(Post::getId)
-                .toList();
+        // verify
+        assertThat(users).isNotNull();
+        assertThat(users).hasSize(2);
 
-        assertThat(postIds).containsExactlyInAnyOrder(1L, 6L, 7L);
+        // get user with appropriate username from db
+        List<Post> user1Posts = users.get()
+                .filter(user -> user.getUsername().equals("username1"))
+                .findAny()
+                .orElseThrow()
+                .getPosts();
+        // user1 has 2 posts
+        assertThat(user1Posts).hasSize(2);
+
+        // get user with appropriate username from db
+        List<Post> user2Posts = users.get()
+                .filter(user -> user.getUsername().equals("username2"))
+                .findAny()
+                .orElseThrow()
+                .getPosts();
+        // user2 has no posts
+        assertThat(user2Posts).hasSize(0);
 
     }
 
     @Test
+    @Order(2)
+    @DisplayName("""
+            Should throw an exception
+             when trying to fetch comments
+             using findAllFetchPosts method
+            """)
+    void shouldThrowAnExceptionWhenTryingToFetchComments(){
+
+        // test the method
+        var users = underTest.findAllFetchPosts(Pageable.unpaged());
+
+        // verify
+        var persistedUser1 = users.get()
+                .filter(user -> user.getUsername().equals("username1"))
+                .findAny()
+                .orElseThrow();
+
+        // as for now there is no Session for comments, see query in the repository
+        assertThatThrownBy(() -> persistedUser1.getComments().forEach(System.out::println))
+                .isInstanceOf(LazyInitializationException.class);
+    }
+
+    // todo: it must be redone!!!!
+    @Test
+    @Order(3)
+    @DisplayName("""
+            Should delete all users
+             and theirs orphans in bulk
+            """)
     @Transactional
-    void shouldDeleteAllUsersAndTheirsOrphansInBulk(){
-        Long userId = 4L;
-        Long postId = 11L; // post that belongs to the user with id 4;
-        Long commentIdByPost = 20L; // comment that belongs to the post with id 11;
-        Long commentIdByUser = 7L; // comment that belongs to the user with id 4;
+    void shouldDeleteAllUsersAndTheirsOrphansInBulk() {
+        // fetch user with "username1"
+        var user1 = underTest.findAll()
+                        .stream()
+                .filter(user -> user.getUsername().equals("username1"))
+                .findAny()
+                .orElseThrow();
 
-        userRepository.deleteInBulkById(userId);
+        Long userId = user1.getId();
+        Long postId = user1.getPosts().get(0).getId();
+        Long commentId = user1.getComments().get(0).getId();
 
-        var userOptional = userRepository.findById(userId);
+        underTest.deleteInBulkById(userId);
+
+        var userOptional = underTest.findById(userId);
         var postOptional = postRepository.findById(postId);
-        var postsCommentOptional = commentRepository.findById(commentIdByPost);
-        var usersCommentOptional = commentRepository.findById(commentIdByUser);
+        var commentOptional = commentRepository.findById(commentId);
 
-        assertThat(userOptional.isEmpty()).isTrue();
-        assertThat(postOptional.isEmpty()).isTrue();
-        assertThat(postsCommentOptional.isEmpty()).isTrue();
-        assertThat(usersCommentOptional.isEmpty()).isTrue();
 
+        assertThat(userOptional).isEmpty();
+        assertThat(postOptional).isEmpty();
+        assertThat(commentOptional).isEmpty();
     }
 
 }

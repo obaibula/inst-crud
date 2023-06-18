@@ -12,10 +12,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Builder
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "users")
 @ToString
@@ -92,5 +90,30 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.setUpdatedAt(LocalDateTime.now());
+    }
+
+    // The Builder must not include comments and posts fields!
+    @Builder
+    public User(Long id,
+                LocalDateTime createdAt,
+                LocalDateTime updatedAt,
+                String username,
+                String bio,
+                String avatar,
+                String phone,
+                String email,
+                String password,
+                UserStatus status) {
+
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.username = username;
+        this.bio = bio;
+        this.avatar = avatar;
+        this.phone = phone;
+        this.email = email;
+        this.password = password;
+        this.status = status;
     }
 }

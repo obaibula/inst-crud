@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
     //  Should I enable automatic flushing or updating? Find out!
     //  Consider the following:
     //  https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.modifying-queries
-    @Modifying
+    @Modifying(flushAutomatically = true)
     @Query(value = """
             DELETE
             FROM User u

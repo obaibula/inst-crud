@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
-@Data
+@Setter @Getter
+@NoArgsConstructor
 @ToString(exclude = {"user", "post"})
 @EqualsAndHashCode(of = "id")
 public class Comment {
