@@ -1,6 +1,7 @@
 package com.example.instcrud.repository;
 
 import com.example.instcrud.entity.Post;
+import org.flywaydb.core.Flyway;
 import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(properties = "spring.flyway.clean-disabled=false")
 class UserRepositoryTest {
 
     @Container
@@ -37,12 +38,15 @@ class UserRepositoryTest {
     private UserRepository underTest;
     @Autowired
     private PostRepository postRepository;
-
     @Autowired
     private CommentRepository commentRepository;
 
     @BeforeEach
-    void setUp() {
+    void setUp(@Autowired Flyway flyway) {
+        // clear the db and migrate
+        flyway.clean();
+        flyway.migrate();
+
         // create user1 with 2 posts
         var user1 = createRundomUser("1");
         underTest.save(user1);
@@ -70,22 +74,15 @@ class UserRepositoryTest {
         commentRepository.save(comment);
     }
 
-    @AfterEach
-    void tearDown() {
-        System.err.println("***************START DELETION***************");
-        underTest.deleteAll();
-        System.err.println("*************END DELETION*****************");
-    }
-
     @Test
     @Order(1)
     @DisplayName("Should find all users and fetch theirs posts eagerly")
     void shouldFindAllUsersAndFetchTheirsPostsEagerly() {
 
-        // test the method
+        // when
         var users = underTest.findAllFetchPosts(Pageable.unpaged());
 
-        // verify
+        // then
         assertThat(users).isNotNull();
         assertThat(users).hasSize(2);
 
@@ -116,12 +113,12 @@ class UserRepositoryTest {
              when trying to fetch comments
              using findAllFetchPosts method
             """)
-    void shouldThrowAnExceptionWhenTryingToFetchComments(){
+    void shouldThrowAnExceptionWhenTryingToFetchComments() {
 
-        // test the method
+        // when
         var users = underTest.findAllFetchPosts(Pageable.unpaged());
 
-        // verify
+        // then
         var persistedUser1 = users.get()
                 .filter(user -> user.getUsername().equals("username1"))
                 .findAny()
@@ -132,7 +129,6 @@ class UserRepositoryTest {
                 .isInstanceOf(LazyInitializationException.class);
     }
 
-    // todo: it must be redone!!!!
     @Test
     @Order(3)
     @DisplayName("""
@@ -143,7 +139,7 @@ class UserRepositoryTest {
     void shouldDeleteAllUsersAndTheirsOrphansInBulk() {
         // fetch user with "username1"
         var user1 = underTest.findAll()
-                        .stream()
+                .stream()
                 .filter(user -> user.getUsername().equals("username1"))
                 .findAny()
                 .orElseThrow();

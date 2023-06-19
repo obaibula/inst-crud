@@ -21,10 +21,10 @@ public interface UserRepository extends JpaRepository<User, Long>{
     // This method uses native ON DELETE CASCADE, so it would not cause the N+1 issue
     // Don't forget to use @Transactional on an appropriate service method
     // todo: Is there any built-in method in Spring Data for that purpose?
-    //  Should I enable automatic flushing or updating? Find out!
+    //  Should I also enable automatic flushing? Find out!
     //  Consider the following:
     //  https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.modifying-queries
-    @Modifying(flushAutomatically = true)
+    @Modifying(clearAutomatically = true)
     @Query(value = """
             DELETE
             FROM User u
